@@ -1,7 +1,1 @@
-POST  https://phone-book-8a4o.onrender.com/api/persons
-Content-Type: application/json
-
-{ 
-  "name": "Nathan ansel", 
-  "number": "67-44-676767"
-}
+DELETE http://localhost:3001/api/persons/6aa93dce70d3d83ed66c49e6
