@@ -1,2 +1,2 @@
-GET https://phone-book-8a4o.onrender.com/api/persons
+DELETE  http://localhost:3001/api/persons/6aad845c6a2324e91eaf1ac9
 

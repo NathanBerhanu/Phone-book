@@ -35,11 +35,11 @@ const App = () => {
       personsService.remove(id).then(() => {
         setPersons(persons.filter(person => person.id !== id))
       }).catch((error) => {
-          setErrorMessage(`Information of '${removedPerson.name}' has already been removed from server`)
+          const message = error.response?.data?.error || 'Could not delete person'
+          setErrorMessage(`${removedPerson?.name || 'Person'}: ${message}`)
           setTimeout(() => {
             setErrorMessage('')
           }, 5000);
-          setPersons(persons.filter(person => person.id !== id))
         }
       )
     }

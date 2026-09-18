@@ -3,6 +3,18 @@ const http = require('http')
 const express = require('express')
 const Person = require('./models/person')
 const morgan = require('morgan')
+const { error } = require('console')
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name == 'CastError'){
+    return response.status(400).send({error: 'malinformatted id'})
+  }else if (error.name == 'ValidationError'){
+    return response.status(400).json({error: error.message})
+  }
+
+  next(error)
+}
 
 const app = express()
 
@@ -40,18 +52,18 @@ app.get('/', (request, response) => {
 })
 
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
+  .catch(error => next(error))
 })
 
 app.get('/info', (request, response) => {
    response.send(`Phonebook has info for ${Quantity} people ${new Date()}`)
 })
 
-
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -60,41 +72,38 @@ app.get('/api/persons/:id', (request, response) => {
         response.json(person)
       }
   })
+  .catch(error => next(error))
 })
 
 
-app.post('/api/persons', (request, response) => {
-  const body = request.body
+app.post('/api/persons', (request, response, next) => {
+  const { name, number } = request.body
 
-  if(
-    !body.name ||
-    !body.number
-  ){  
-    return response.status(404).json({ error: 'empty parameter or already exisitng' })
-
-  }
   const person = new Person({
-      name : body.name,
-      number: body.number
+    name: name,
+    number: number
   })
 
-  person.save().then(savedPersons => {
-     response.json(savedPersons)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
   })
+  .catch(error => next(error))
+})
 
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      if (!result) {
+        return response.status(404).json({ error: 'person not found' })
+      }
+
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 
-app.delete('/api/persons/:id', async (request, response) => {
-  const person = await Person.findByIdAndDelete(request.params.id)
-
-  if (!person) {
-    return response.status(404).end()
-  }
-
-  response.status(204).end()
-})
-
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
