@@ -4,7 +4,12 @@ mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/phonebook'
 
-console.log('connecting to', url)
+if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
+  throw new Error('MONGODB_URI is not configured')
+}
+
+const connectionUrl = new URL(url)
+console.log('connecting to MongoDB', connectionUrl.hostname)
 mongoose.connect(url, { family: 4 })
   .then(() => {
     console.log('connected to MongoDB')
